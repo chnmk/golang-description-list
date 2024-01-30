@@ -2,6 +2,7 @@ package jsonGenerator
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 )
@@ -20,32 +21,43 @@ type DescriptionList struct {
 
 func GenerateJSON() string {
 
-	// Read files from ./temp
-	files, err := os.ReadDir("./temp")
+	// Declare required variables:
+	var folderName string
+	var unsortedFiles []string
+	var unsortedCategory ContentsType
+
+	// User inputs:
+	inputFolder := "temp"
+	defaultCategory := "Various"
+
+	// Read files from the folder:
+	files, err := os.ReadDir("./" + inputFolder)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Declare required variables
-	var filesOutput []string
-	var newContent ContentsType
-
-	// Get variables from files
+	// Get variables from each file:
 	for _, file := range files {
-		filesOutput = append(filesOutput, file.Name())
-		newContent = ContentsType{
-			Category: "MyCat",
-			Entries:  filesOutput,
+
+		if !file.IsDir() {
+			unsortedFiles = append(unsortedFiles, file.Name())
+			unsortedCategory = ContentsType{
+				Category: defaultCategory,
+				Entries:  unsortedFiles,
+			}
+		} else {
+			fmt.Println("Hi")
+			// For each folder create new ContentsType variable...
 		}
 	}
 
 	// Build a DescriptionList
 	myResult := &DescriptionList{
-		Name:        "MyName",
+		Name:        folderName,
 		Description: "MyDesc",
 		Tags:        []string{"Tag1", "Tag2"},
 
-		Contents: []ContentsType{newContent},
+		Contents: []ContentsType{unsortedCategory},
 	}
 
 	// Return result
