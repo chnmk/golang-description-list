@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cnhmk/golangMusicDB/src/jsonGenerator"
+	"github.com/cnhmk/golang-description-list/src/jsonGenerator"
 )
 
 func main() {
