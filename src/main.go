@@ -33,5 +33,8 @@ func main() {
 	tag, _ := reader.ReadString('\n')
 	tag = strings.TrimSuffix(tag, "\n")
 
-	fmt.Println(jsonGenerator.GenerateJSON(inputFolder, defaultCategory, description, tag))
+	file := jsonGenerator.GenerateJSON(inputFolder, defaultCategory, description, tag)
+	fileName := inputFolder + ".json"
+	_ = os.WriteFile(fileName, file, 0644)
+	fmt.Println(fileName + "was successfuly created!")
 }

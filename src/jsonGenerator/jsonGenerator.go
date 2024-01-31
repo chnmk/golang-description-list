@@ -24,7 +24,7 @@ func GenerateJSON(
 	defaultCategory string,
 	description string,
 	tag string,
-) string {
+) []byte {
 	// Declare required variables:
 	var finalResult []DescriptionList
 	var unsortedFiles []string
@@ -148,6 +148,7 @@ func GenerateJSON(
 	finalResult = append(finalResult, unsortedFolder)
 
 	// Return result as JSON
-	myResultMarshal, _ := json.Marshal(finalResult)
-	return string(myResultMarshal)
+	//myResultMarshal, _ := json.Marshal(finalResult)
+	myResultMarshal, _ := json.MarshalIndent(finalResult, "", " ")
+	return []byte(myResultMarshal)
 }
