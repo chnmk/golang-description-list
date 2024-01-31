@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strings"
 )
 
 type ContentsType struct {
@@ -18,25 +19,35 @@ type DescriptionList struct {
 	Contents    []ContentsType `json:"Contents,omitempty"`
 }
 
-func GenerateJSON() string {
-
+func GenerateJSON(
+	inputFolder string,
+	defaultCategory string,
+	description string,
+	tag string,
+) string {
 	// Declare required variables:
 	var finalResult []DescriptionList
 	var unsortedFiles []string
 	var unsortedCategory ContentsType
 
 	// User inputs, default values:
-	inputFolder := "temp_with_folders"
-	defaultCategory := "Unsorted"
-	// Leave empty to exclude:
-	description := "Generated automatically."
-	tag := "golang_script"
-
-	// Remove spaces from tag input:
-	// ...
+	if inputFolder == "" {
+		inputFolder = "./"
+	}
+	if defaultCategory == "" {
+		defaultCategory = "Unsorted"
+	}
+	if description == "" {
+		description = "Generated automatically."
+	}
+	if tag == "" {
+		tag = "golang_script"
+	} else {
+		tag = strings.ReplaceAll(tag, " ", "_")
+	}
 
 	// Read files from input folder:
-	inputFolderFiles, err := os.ReadDir("./" + inputFolder)
+	inputFolderFiles, err := os.ReadDir(inputFolder)
 	if err != nil {
 		log.Fatal(err)
 	}
