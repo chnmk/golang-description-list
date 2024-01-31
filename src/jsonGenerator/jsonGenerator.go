@@ -2,7 +2,6 @@ package jsonGenerator
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 )
@@ -22,45 +21,119 @@ type DescriptionList struct {
 func GenerateJSON() string {
 
 	// Declare required variables:
-	var folderName string
+	var finalResult []DescriptionList
 	var unsortedFiles []string
 	var unsortedCategory ContentsType
 
-	// User inputs:
-	inputFolder := "temp"
-	defaultCategory := "Various"
+	// User inputs, default values:
+	inputFolder := "temp_with_folders"
+	defaultCategory := "Unsorted"
+	// Leave empty to exclude:
+	description := "Generated automatically."
+	tag := "golang_script"
+
+	// Remove spaces from tag input:
+	// ...
 
 	// Read files from the folder:
-	files, err := os.ReadDir("./" + inputFolder)
+	inputFolderFiles, err := os.ReadDir("./" + inputFolder)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Get variables from each file:
-	for _, file := range files {
+	// Build a DescriptionList for each folder:
+	for _, file := range inputFolderFiles {
 
 		if !file.IsDir() {
+			// = songs with no artists
+			// If it's a file with no folder, append it to other unsorted files:
 			unsortedFiles = append(unsortedFiles, file.Name())
-			unsortedCategory = ContentsType{
-				Category: defaultCategory,
-				Entries:  unsortedFiles,
-			}
 		} else {
-			fmt.Println("Hi")
-			// For each folder create new ContentsType variable...
+			// = artist
+			// If it's a folder, create a DescriptionList for it:
+			currentListName := file.Name()
+			var currentUnsortedFiles []string
+
+			// Check each folder inside this folder:
+			currentFolderFiles, err := os.ReadDir("./" + inputFolder + "/" + currentListName)
+			if err != nil {
+				log.Fatal(err)
+			}
+			var currentDescListContents []ContentsType
+			for _, list_file := range currentFolderFiles {
+				// = album
+
+				if !list_file.IsDir() {
+					// = songs with no albums
+					currentUnsortedFiles = append(currentUnsortedFiles, list_file.Name())
+				} else {
+					// = album folders
+					currentContentsName := list_file.Name()
+
+					var currentContentsEntries []string
+					currentContentsFiles, err := os.ReadDir("./" + inputFolder + "/" + currentListName + "/" + currentContentsName)
+					if err != nil {
+						log.Fatal(err)
+					}
+					for _, entry_file := range currentContentsFiles {
+						// = songs inside albums
+						currentContentsEntries = append(currentContentsEntries, entry_file.Name())
+					}
+
+					currentContents := ContentsType{
+						Category: currentContentsName,
+						Entries:  currentContentsEntries,
+					}
+
+					currentDescListContents = append(currentDescListContents, currentContents)
+					// = finished songs with albums
+				}
+			}
+			if len(currentUnsortedFiles) != 0 {
+				currentDescListUnsortedContents := ContentsType{
+					Category: defaultCategory,
+					Entries:  currentUnsortedFiles,
+				}
+				currentDescListContents = append(currentDescListContents, currentDescListUnsortedContents)
+			}
+
+			currentFolder := DescriptionList{
+				Name: currentListName,
+			}
+			if description != "" {
+				currentFolder.Description = description
+			}
+			if tag != "" {
+				currentFolder.Tags = []string{tag}
+			}
+			if len(currentDescListContents) != 0 {
+				currentFolder.Contents = currentDescListContents
+			}
+			finalResult = append(finalResult, currentFolder)
 		}
 	}
 
-	// Build a DescriptionList
-	myResult := &DescriptionList{
-		Name:        folderName,
-		Description: "MyDesc",
-		Tags:        []string{"Tag1", "Tag2"},
-
-		Contents: []ContentsType{unsortedCategory},
+	// Add this to final []DescriptionList
+	unsortedCategory = ContentsType{
+		Category: defaultCategory,
+		Entries:  unsortedFiles,
+	}
+	unsortedFolder := DescriptionList{
+		Name: defaultCategory,
+	}
+	if description != "" {
+		unsortedFolder.Description = description
+	}
+	if tag != "" {
+		unsortedFolder.Tags = []string{tag}
+	}
+	if len(unsortedCategory.Entries) != 0 {
+		unsortedFolder.Contents = []ContentsType{unsortedCategory}
 	}
 
-	// Return result
-	myResultMarshal, _ := json.Marshal(myResult)
+	finalResult = append(finalResult, unsortedFolder)
+
+	// Return result as JSON
+	myResultMarshal, _ := json.Marshal(finalResult)
 	return string(myResultMarshal)
 }
